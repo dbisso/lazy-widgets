@@ -1,0 +1,26 @@
+{
+    "name": "dbisso/wp-lazy-widgets",
+    "description": "Lazy load WordPress widgets",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0",
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/dbisso/Hooker.git"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Dan Bissonnet",
+            "email": "dan@danisadesigner.com"
+        }
+    ],
+    "require": {
+        "dbisso/hooker" : "dev-master"
+    },
+    "autoload": {
+        "psr-4" : {
+            "DBisso\\Plugin\\LazyWidgets\\": "src"
+        }
+    }
+}

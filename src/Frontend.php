@@ -46,17 +46,6 @@ class Frontend implements HookableInterface {
 	public function action_wp_footer() {
 		?><script type="text/javascript" async defer>
 			jQuery(function($) {
-				// var widgets = $('[data-widget]').each( function() {
-				// 	var widget = $(this);
-				// 	$.get( woocommerce_params.ajax_url, {
-				// 		action: 'get_widget',
-				// 		hash: widget.data('widget')
-				// 	} ).done( function( data ) {
-				// 		console.log(data)
-				// 		widget.html( data );
-				// 	});
-				// });
-
 				var hashes = [];
 
 				var widgets = $('[data-widget]').each( function() {
@@ -117,31 +106,6 @@ class Frontend implements HookableInterface {
 		}
 
 		wp_send_json( $return );
-	}
-
-	/**
-	 * Anonymous AJAX callback
-	 */
-	public function action_wp_ajax_nopriv_get_widget() {
-		$this->action_wp_ajax_get_widget();
-	}
-
-	/**
-	 * AJAX callback to return an individual widget.
-	 */
-	public function action_wp_ajax_get_widget() {
-		$hash = $this->clean_hash( $_REQUEST['hash'] );
-
-		if ( $hash ) {
-			$params     = unserialize( get_transient( self::$cache_key_prefix . $hash ) );
-			$class_name = $params[0];
-			$instance   = $params[1];
-			$args       = $params[2];
-
-			the_widget( $class_name, $instance, $args );
-		}
-
-		die('');
 	}
 
 	/**

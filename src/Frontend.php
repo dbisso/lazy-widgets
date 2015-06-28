@@ -11,6 +11,10 @@ use DBisso\Hooker\HookableInterface;
  * @todo Add option to choose whether to batch the AJAX requests
  */
 class Frontend implements HookableInterface {
+	/**
+	 * Action string we look for in the request.
+	 */
+	const REQUEST_ACTION = 'get_widgets';
 
 	/**
 	 * Prefix for the cache key. Prepended to the widget setting hash.
@@ -42,6 +46,27 @@ class Frontend implements HookableInterface {
 	}
 
 	/**
+	 * Look for our action in the request and build the widgets if we find it.
+	 */
+	public function action_template_redirect() {
+		$action = get_query_var( 'action' );
+
+		if ( ! empty( $action ) && 'get_widgets' === $action ) {
+			nocache_headers();
+			$this->get_widgets();
+		}
+	}
+
+	/**
+	 * Register our query vars.
+	 */
+	public function filter_query_vars( $vars ) {
+		$vars[] = 'hashes';
+		$vars[] = 'action';
+		return $vars;
+	}
+
+	/**
 	 * Add the JS to the footer
 	 *
 	 * @todo Put this in it's own file.
@@ -56,51 +81,48 @@ class Frontend implements HookableInterface {
 					hashes.push( widget.data('widget') );
 				});
 
-				$.get( woocommerce_params.ajax_url, {
-					action: 'get_widgets',
-					hashes: hashes
-				} ).done( function( data ) {
-					if ( data === '0' ) {
-						throw 'No data received';
-					}
-					$.each( data, function( hash ) {
-						var widget = $('[data-widget="' + hash + '"]');
+				if ( hashes.length > 0 ) {
+					$.get( '', {
+						action: '<?= self::REQUEST_ACTION ?>',
+						hashes: hashes
+					} ).done( function( data ) {
+						if ( data === '0' ) {
+							throw 'No data received';
+						}
+						$.each( data, function( hash ) {
+							var widget = $('[data-widget="' + hash + '"]');
 
-						widget
-							.removeClass('lazy-widget--placeholder')
-							.addClass('lazy-widget--loading')
-							.html( data[hash] );
+							widget
+								.replaceWith( data[hash] );
+								// .removeClass('lazy-widget--placeholder')
+								// .addClass('lazy-widget--loading')
+								// .html( data[hash] );
 
-						// Allow DOM to settle
-						setTimeout( function() {
-							widgets.addClass('lazy-widget--loaded');
-						}, 1 );
-					} );
-				});
+							// Allow DOM to settle
+							setTimeout( function() {
+								widgets.addClass('lazy-widget--loaded');
+							}, 1 );
+						} );
+					});
+				}
 			});
 		</script><?php
 	}
 
 	/**
-	 * Anonymous AJAX callback
-	 */
-	public function action_wp_ajax_nopriv_get_widgets() {
-		$this->action_wp_ajax_get_widgets();
-	}
-
-	/**
 	 * AJAX callback to return the widget contents.
 	 */
-	public function action_wp_ajax_get_widgets() {
+	public function get_widgets() {
 		$return = [];
 
 		// Sanitize the hashes and remove and empty ones
 		foreach ( array_filter( array_map( [ $this, 'clean_hash' ], $_REQUEST['hashes'] ) ) as $hash ) {
-			$params = unserialize( get_transient( self::$cache_key_prefix . $hash ) );
-			$class_name = $params[0];
-			$instance = $params[1];
-			$args = $params[2];
 
+			$params     = unserialize( get_transient( self::$cache_key_prefix . $hash ) );
+			$class_name = $params[0];
+			$instance   = $params[1];
+			$args       = $params[2];
+			$query      = $params[3];
 			ob_start();
 			the_widget( $class_name, $instance, $args );
 			$content = ob_get_clean();

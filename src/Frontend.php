@@ -32,7 +32,10 @@ class Frontend implements HookableInterface {
 			$serialized = serialize( [ get_class( $widget ), $instance, $args ] );
 			$hash = substr( md5( $serialized ), 0, 16 );
 
-			set_transient( self::$cache_key_prefix . $hash , $serialized, 300 );
+			if ( false === get_transient( self::$cache_key_prefix . $hash ) ) {
+				set_transient( self::$cache_key_prefix . $hash , $serialized, DAY_IN_SECONDS );
+			}
+
 			?><div class="lazy-widget--placeholder" data-widget="<?php esc_attr_e( $hash ) ?>"></div><?php
 			return false;
 		}

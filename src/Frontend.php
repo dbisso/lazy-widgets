@@ -66,47 +66,8 @@ class Frontend implements HookableInterface {
 		return $vars;
 	}
 
-	/**
-	 * Add the JS to the footer
-	 *
-	 * @todo Put this in it's own file.
-	 */
-	public function action_wp_footer() {
-		?><script type="text/javascript" async defer>
-			jQuery(function($) {
-				var hashes = [];
-
-				var widgets = $('[data-widget]').each( function() {
-					var widget = $(this);
-					hashes.push( widget.data('widget') );
-				});
-
-				if ( hashes.length > 0 ) {
-					$.get( '', {
-						action: '<?= self::REQUEST_ACTION ?>',
-						hashes: hashes
-					} ).done( function( data ) {
-						if ( data === '0' ) {
-							throw 'No data received';
-						}
-						$.each( data, function( hash ) {
-							var widget = $('[data-widget="' + hash + '"]');
-
-							widget
-								.replaceWith( data[hash] );
-								// .removeClass('lazy-widget--placeholder')
-								// .addClass('lazy-widget--loading')
-								// .html( data[hash] );
-
-							// Allow DOM to settle
-							setTimeout( function() {
-								widgets.addClass('lazy-widget--loaded');
-							}, 1 );
-						} );
-					});
-				}
-			});
-		</script><?php
+	public function action_wp_enqueue_scripts() {
+		wp_enqueue_script( 'dbisso-lazy-widgets', plugins_url( 'dbisso-lazy-widgets/js/lazy-widgets.js' ), ['jquery'], '0.1.0_1', true );
 	}
 
 	/**

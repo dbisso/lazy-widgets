@@ -34,7 +34,7 @@ class Frontend implements HookableInterface {
 	public function filter_widget_display_callback( array $instance, \WP_Widget $widget, array $args ) {
 		if ( ! $this->is_ajax() ) {
 			$serialized = serialize( [ get_class( $widget ), $instance, $args ] );
-			$hash = substr( md5( $serialized ), 0, 16 );
+			$hash = wp_hash( $serialized );
 
 			if ( false === get_transient( self::$cache_key_prefix . $hash ) ) {
 				set_transient( self::$cache_key_prefix . $hash , $serialized, DAY_IN_SECONDS );
@@ -112,7 +112,7 @@ class Frontend implements HookableInterface {
 	 * @return string|false The orginal hash if it passes, otherwise false.
 	 */
 	private function clean_hash( $hash ) {
-		if ( preg_match( '/^[a-f0-9]{16}$/', $hash ) ) {
+		if ( preg_match( '/^[a-f0-9]{32}$/', $hash ) ) {
 			return $hash;
 		}
 

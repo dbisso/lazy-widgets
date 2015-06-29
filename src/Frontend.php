@@ -66,8 +66,19 @@ class Frontend implements HookableInterface {
 		return $vars;
 	}
 
+	/**
+	 * Enqueue our script
+	 */
 	public function action_wp_enqueue_scripts() {
 		wp_enqueue_script( 'dbisso-lazy-widgets', plugins_url( 'dbisso-lazy-widgets/js/lazy-widgets.js' ), ['jquery'], '0.1.0_1', true );
+	}
+
+	public function filter_script_loader_tag( $tag, $handle ) {
+		if ( 'dbisso-lazy-widgets' === $handle ) {
+			return str_replace(' src',' defer src', $tag);
+		}
+
+		return $tag;
 	}
 
 	/**
